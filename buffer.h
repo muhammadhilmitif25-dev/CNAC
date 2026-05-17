@@ -4,13 +4,14 @@
 #include "cursor.h"
 
 // batas maksimal baris dan kolom yang bisa ditampung
-#define MAX_BARIS 100
-#define MAX_KOLOM 100
+#define MAX_BARIS 1000
+#define MAX_KOLOM 1000
 
 // struct buffer untuk nyimpen semua teks dan posisi kursor
 struct Buffer {
     char text[MAX_BARIS][MAX_KOLOM];
     Cursor cur;
+    int barisAda[MAX_BARIS]; // 1 = baris ini pernah dibuat (Enter atau baris 0)
 };
 
 typedef struct Buffer Buffer;
@@ -21,6 +22,6 @@ void insertChar(Buffer *b, char c);
 void deleteChar(Buffer *b);
 void newLine(Buffer *b);
 void displayBuffer(Buffer *b);
-void resetDisplayState(void); // reset state display saat masuk mode ketik
+void resetDisplayState(void);
 
 #endif

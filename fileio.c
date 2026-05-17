@@ -107,20 +107,51 @@ void BukaDariFile(Buffer *b)
     // reset buffer dulu sebelum diisi
     int i, j;
     for (i = 0; i < MAX_BARIS; i++)
+    {
+        b->barisAda[i] = 0; // reset barisAda juga!
         for (j = 0; j < MAX_KOLOM; j++)
             b->text[i][j] = '\0';
+    }
     b->cur.brs = 0;
     b->cur.klm = 0;
+    b->barisAda[0] = 2; // baris 0 selalu ada (pakai nilai BARIS_ENTER=2 supaya dianggap ada)
 
     // baca file baris per baris dan masukkan ke buffer
-    char lineBuf[MAX_KOLOM + 2];
+    // kalau satu baris file lebih panjang dari MAX_KOLOM-1,
+    // pecah jadi beberapa baris wrap (barisAda=1) secara otomatis
+    char lineBuf[MAX_KOLOM * MAX_BARIS]; // ikut MAX dari buffer.h
     int baris = 0;
+    int pertamaDiBaris = 1; // apakah ini baris pertama dari satu baris file
     while (baris < MAX_BARIS && fgets(lineBuf, sizeof(lineBuf), fptr) != NULL)
     {
-        int k = 0;
-        for (j = 0; lineBuf[j] != '\0' && lineBuf[j] != '\n' && k < MAX_KOLOM; j++, k++)
-            b->text[baris][k] = lineBuf[j];
-        baris++;
+        int pos = 0;
+        int panjangLine = 0;
+        while (lineBuf[panjangLine] != '\0' && lineBuf[panjangLine] != '\n')
+            panjangLine++;
+
+        pertamaDiBaris = 1;
+        while (pos < panjangLine && baris < MAX_BARIS)
+        {
+            int ambil = panjangLine - pos;
+            if (ambil > MAX_KOLOM - 1) ambil = MAX_KOLOM - 1;
+
+            for (j = 0; j < ambil; j++)
+                b->text[baris][j] = lineBuf[pos + j];
+
+            // baris pertama dari satu baris file = BARIS_ENTER (2)
+            // baris lanjutan (wrap) = BARIS_WRAP (1)
+            b->barisAda[baris] = pertamaDiBaris ? 2 : 1;
+            pertamaDiBaris = 0;
+            pos += ambil;
+            baris++;
+        }
+
+        // kalau baris file kosong (hanya newline), tetap buat satu baris kosong
+        if (panjangLine == 0 && baris < MAX_BARIS)
+        {
+            b->barisAda[baris] = 2;
+            baris++;
+        }
     }
 
     fclose(fptr);
