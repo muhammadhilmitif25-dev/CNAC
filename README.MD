@@ -6,9 +6,9 @@ Aplikasi notepad berbasis terminal yang dibangun menggunakan bahasa C, dikembang
 
 ## 👥 Anggota Kelompok
 
-| NIM       | Nama                | GitHub   |
-|-----------|---------------------|----------|
-| [NIM kamu] | [Nama kamu]        | [GitHub] |
+| NIM         | Nama                              | GitHub                   |
+|-------------|-----------------------------------|--------------------------|
+| [251511049] | [Muhammad Hilmi Farahat]          | [muhammadhilmitif25-dev] |
 
 **Tim:** CNAC  
 **Dosen Penanggung Jawab:** Yudi Widhiyasana, S.Si., MT
