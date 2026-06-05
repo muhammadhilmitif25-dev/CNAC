@@ -23,12 +23,11 @@ void SimpanKeFile(Buffer *b)
     NodeBaris *cur = b->kepala;
     while (cur != NULL)
     {
-        // Tulis teks dari node ke file
+
         fprintf(file, "%s", cur->teks);
-        
-        // Karena 1 node = 1 baris sejati, langsung kasih \n di setiap akhir node
+
         fprintf(file, "\n");
-        
+
         cur = cur->berikut;
     }
 
@@ -58,7 +57,6 @@ void BukaDariFile(Buffer *b)
         return;
     }
 
-    // Bersihkan buffer lama sebelum memuat file baru
     bebaskanBuffer(b);
     initBuffer(b);
 
@@ -67,29 +65,39 @@ void BukaDariFile(Buffer *b)
 
     while (fgets(barisTeks, sizeof(barisTeks), file) != NULL)
     {
-        // Hilangkan karakter newline (\n atau \r) bawaan file di ujung string
+
         barisTeks[strcspn(barisTeks, "\r\n")] = '\0';
 
         if (b->kepala->teks[0] == '\0' && b->jumlah == 1 && indeksNode == NULL)
         {
-            // Isi node pertama jika masih kosong bawaan initBuffer
+
+            memset(b->kepala->teks, 0, MAX_KOLOM);
             strcpy(b->kepala->teks, barisTeks);
+
+            b->kepala->barisAda = BARIS_ENTER;
             indeksNode = b->kepala;
         }
         else
         {
-            // Buat node baru untuk baris selanjutnya
+
             NodeBaris *baru = (NodeBaris *)malloc(sizeof(NodeBaris));
             if (baru != NULL)
             {
+                memset(baru->teks, 0, MAX_KOLOM);
                 strcpy(baru->teks, barisTeks);
+
+                baru->barisAda = BARIS_ENTER;
                 baru->berikut = NULL;
+
                 indeksNode->berikut = baru;
                 indeksNode = baru;
                 b->jumlah++;
             }
         }
     }
+
+    b->cur.brs = 0;
+    b->cur.klm = 0;
 
     fclose(file);
     printf("Berhasil! File '%s' sukses dimuat ke editor.\n", namaFile);

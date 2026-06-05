@@ -3,49 +3,105 @@
 #include "render.h"
 #include "buffer.h"
 
+#define BARIS_HEADER 4
+
 void gotoxy(int x, int y)
 {
-    COORD coord;
-    coord.X = x;
-    coord.Y = y;
-
-    SetConsoleCursorPosition(
-        GetStdHandle(STD_OUTPUT_HANDLE),
-        coord
-    );
+    COORD coord = {(SHORT)x, (SHORT)y};
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
 
 static void clearScreen(void)
 {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hConsole != INVALID_HANDLE_VALUE)
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    if (!GetConsoleScreenBufferInfo(h, &csbi))
+        return;
+    DWORD cellCount = csbi.dwSize.X * csbi.dwSize.Y;
+    COORD home = {0, 0};
+    DWORD written;
+    FillConsoleOutputCharacter(h, ' ', cellCount, home, &written);
+    FillConsoleOutputAttribute(h, csbi.wAttributes, cellCount, home, &written);
+    SetConsoleCursorPosition(h, home);
+}
+
+static void hapusSisaBaris(void)
+{
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    if (!GetConsoleScreenBufferInfo(h, &csbi))
+        return;
+    DWORD sisa = csbi.dwSize.X - csbi.dwCursorPosition.X;
+    DWORD written;
+    FillConsoleOutputCharacter(h, ' ', sisa, csbi.dwCursorPosition, &written);
+    FillConsoleOutputAttribute(h, csbi.wAttributes, sisa, csbi.dwCursorPosition, &written);
+}
+
+static void hapusSampaiAkhirLayar(void)
+{
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    if (!GetConsoleScreenBufferInfo(h, &csbi))
+        return;
+    DWORD sisa = (DWORD)(csbi.dwSize.X - csbi.dwCursorPosition.X) + (DWORD)(csbi.srWindow.Bottom - csbi.dwCursorPosition.Y) * csbi.dwSize.X;
+    DWORD written;
+    FillConsoleOutputCharacter(h, ' ', sisa, csbi.dwCursorPosition, &written);
+    FillConsoleOutputAttribute(h, csbi.wAttributes, sisa, csbi.dwCursorPosition, &written);
+}
+
+void displayBuffer(Buffer *b)
+{
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(h, &csbi);
+
+    int tinggiWindow = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    int maksBaris = tinggiWindow - BARIS_HEADER - 1;
+    if (maksBaris < 1)
+        maksBaris = 1;
+
+    int scrollOffset = 0;
+    if (b->cur.brs >= maksBaris)
+        scrollOffset = b->cur.brs - maksBaris + 1;
+
+    NodeBaris *node = b->kepala;
+    int i = 0;
+    while (node != NULL && i < scrollOffset)
     {
-        DWORD mode;
-        if (GetConsoleMode(hConsole, &mode))
-        {
-            SetConsoleMode(hConsole, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-
-            CONSOLE_SCREEN_BUFFER_INFO csbi;
-            if (GetConsoleScreenBufferInfo(hConsole, &csbi)) {
-                DWORD cellCount = csbi.dwSize.X * csbi.dwSize.Y;
-                COORD homeCoord = {0, 0};
-                DWORD written;
-
-                FillConsoleOutputCharacter(hConsole, ' ', cellCount, homeCoord, &written);
-                FillConsoleOutputAttribute(hConsole, csbi.wAttributes, cellCount, homeCoord, &written);
-                SetConsoleCursorPosition(hConsole, homeCoord);
-                return;
-            }
-        }
+        node = node->berikut;
+        i++;
     }
 
-    printf("\x1b[2J\x1b[H");
-    fflush(stdout);
+    int barisDicetak = 0;
+    while (node != NULL && barisDicetak < maksBaris)
+    {
+        int barisAsli = i;
+        int panjang = panjangNode(node);
+        int j;
+
+        for (j = 0; j <= panjang; j++)
+        {
+            if (barisAsli == b->cur.brs && j == b->cur.klm)
+                putchar('|');
+            if (j < panjang)
+                putchar(node->teks[j]);
+        }
+
+        hapusSisaBaris();
+        putchar('\n');
+
+        node = node->berikut;
+        i++;
+        barisDicetak++;
+    }
+
+    hapusSampaiAkhirLayar();
 }
 
 void renderEditor(Buffer *b)
 {
-    clearScreen();
+
+    gotoxy(0, 0);
 
     printf("===============================================================================\n");
     printf("  MODE KETIK | ESC=menu | Panah=gerak | Backspace=hapus | Enter=baris baru  \n");
@@ -53,53 +109,3 @@ void renderEditor(Buffer *b)
 
     displayBuffer(b);
 }
-
-static void bersihkanSisaBaris(void)
-{
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-    if (GetConsoleScreenBufferInfo(hConsole, &csbi)) {
-        DWORD written;
-        DWORD length = csbi.dwSize.X - csbi.dwCursorPosition.X;
-        FillConsoleOutputCharacter(hConsole, ' ', length, csbi.dwCursorPosition, &written);
-        return;
-    }
-
-    printf("\x1b[K");
-    fflush(stdout);
-}
-
-void displayBuffer(Buffer *b)
-{
-    NodeBaris *node = b->kepala;
-    int i = 0;
-    int barisAkhir = b->jumlah - 1;
-
-    while (node != NULL && i <= barisAkhir)
-    {
-        char cetak[1200];
-        int c_idx = 0;
-        int panjang = panjangNode(node);
-        int j;
-
-        for (j = 0; j <= panjang; j++)
-        {
-            if (i == b->cur.brs && j == b->cur.klm)
-            {
-                cetak[c_idx++] = '|';
-            }
-            if (j == panjang) break;
-            cetak[c_idx++] = node->teks[j];
-        }
-        cetak[c_idx] = '\0';
-
-        printf("%s", cetak);
-        bersihkanSisaBaris();
-        printf("\n");
-
-        node = node->berikut;
-        i++;
-    }
-}
-

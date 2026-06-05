@@ -21,7 +21,7 @@ void CariKata(Buffer *b)
 
     while (node != NULL)
     {
-        // Langsung cek panjang teks asli di dalam node
+
         if (panjangNode(node) > 0)
         {
             char *posisi = strstr(node->teks, kata);
