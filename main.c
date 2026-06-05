@@ -2,25 +2,27 @@
 #include <string.h>
 #include <conio.h>
 #include <stdlib.h>
+#include <windows.h> 
+#include "render.h"
 #include "cursor.h"
 #include "buffer.h"
-#include "editor.h"
+#include "newpaper.h"
 #include "fileio.h"
 #include "searchfile.h"
+
 
 int main()
 {
     Buffer myBuffer;
     initBuffer(&myBuffer);
-
     int menu;
 
     while (1)
     {
-        system("cls");
+        system("cls"); // Hapus layar khusus di menu utama saja
 
         printf("============================================\n");
-        printf("       NOTEPAD CONSOLE - CKA EDITION       \n");
+        printf("       NOTEPAD CONSOLE - CNAC EDITION       \n");
         printf("============================================\n\n");
         printf("  ISI DOKUMEN:\n");
         printf("  ------------\n");
@@ -38,57 +40,41 @@ int main()
 
         if (scanf(" %d", &menu) != 1)
         {
-            while (getchar() != '\n')
-                ;
+            while (getchar() != '\n');
             continue;
         }
 
         if (menu == 1)
         {
             resetDisplayState();
+            system("cls"); // Bersihkan layar sekali sebelum mulai mengetik
 
+            
             while (1)
             {
-                system("cls");
-                printf("============================================\n");
-                printf("  MODE KETIK | ESC=menu | Panah=gerak      \n");
-                printf("  Backspace=hapus | Enter=baris baru       \n");
-                printf("============================================\n\n");
-
-                displayBuffer(&myBuffer);
-
-                printf("\n--------------------------------------------\n");
-                printf("[ ESC = kembali ke menu ]\n");
+                
+             renderEditor(&myBuffer);
+                
                 fflush(stdout);
-
                 int c = getch();
 
-                if (c == 27) // ESC
-                {
+                if (c == 27) { // ESC keluar
                     break;
                 }
-                else if (c == 224) // tombol panah (prefix dari getch di Windows)
-                {
+                else if (c == 224) { // Deteksi tombol panah navigasi
                     int arah = getch();
-                    if (arah == 75)
-                        movekiri(&myBuffer); // panah kiri
-                    else if (arah == 77)
-                        movekanan(&myBuffer); // panah kanan
-                    else if (arah == 72)
-                        moveatas(&myBuffer); // panah atas
-                    else if (arah == 80)
-                        movebawah(&myBuffer); // panah bawah
+                    if (arah == 75) movekiri(&myBuffer); 
+                    else if (arah == 77) movekanan(&myBuffer); 
+                    else if (arah == 72) moveatas(&myBuffer); 
+                    else if (arah == 80) movebawah(&myBuffer); 
                 }
-                else if (c == 8) // Backspace
-                {
+                else if (c == 8) { // Backspace
                     deleteChar(&myBuffer);
                 }
-                else if (c == 13) // Enter
-                {
+                else if (c == 13) { // Enter
                     newLine(&myBuffer);
                 }
-                else if (c >= 32 && c <= 126) // karakter biasa yang bisa dicetak
-                {
+                else if (c >= 32 && c <= 126) { // Karakter teks biasa
                     insertChar(&myBuffer, (char)c);
                 }
             }
@@ -97,46 +83,36 @@ int main()
         {
             SimpanKeFile(&myBuffer);
             printf("\nTekan Enter untuk kembali ke menu...");
-            while (kbhit())
-                getch(); // Bersihkan buffer
-            while (getch() != 13)
-                ; // Tunggu ENTER (ASCII 13)
+            while (kbhit()) getch(); 
+            while (getch() != 13); 
         }
         else if (menu == 3)
         {
             SaveAs(&myBuffer);
             printf("\nTekan Enter untuk kembali ke menu...");
-            while (kbhit())
-                getch();
-            while (getch() != 13)
-                ;
+            while (kbhit()) getch();
+            while (getch() != 13);
         }
         else if (menu == 4)
         {
             BukaDariFile(&myBuffer);
             printf("\nTekan Enter untuk kembali ke menu...");
-            while (kbhit())
-                getch();
-            while (getch() != 13)
-                ;
+            while (kbhit()) getch();
+            while (getch() != 13);
         }
         else if (menu == 5)
         {
             CariKata(&myBuffer);
             printf("\nTekan Enter untuk kembali ke menu...");
-            while (kbhit())
-                getch();
-            while (getch() != 13)
-                ;
+            while (kbhit()) getch();
+            while (getch() != 13);
         }
         else if (menu == 6)
         {
             JalankanFiturNew(&myBuffer);
             printf("\nTekan Enter untuk kembali ke menu...");
-            while (kbhit())
-                getch();
-            while (getch() != 13)
-                ;
+            while (kbhit()) getch();
+            while (getch() != 13);
         }
         else if (menu == 7)
         {
@@ -149,6 +125,5 @@ int main()
             system("pause");
         }
     }
-
     return 0;
 }

@@ -1,5 +1,5 @@
-#ifndef EDITOR_H
-#define EDITOR_H
+#ifndef NEWPAPER_H
+#define NEWPAPER_H
 
 #include "buffer.h"
 

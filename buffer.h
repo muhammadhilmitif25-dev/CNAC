@@ -3,25 +3,41 @@
 
 #include "cursor.h"
 
-// batas maksimal baris dan kolom yang bisa ditampung
-#define MAX_BARIS 1000
+/* Batas maksimal karakter per baris */
 #define MAX_KOLOM 1000
 
-// struct buffer untuk nyimpen semua teks dan posisi kursor
-struct Buffer {
-    char text[MAX_BARIS][MAX_KOLOM];
-    Cursor cur;
-    int barisAda[MAX_BARIS]; // 1 = baris ini pernah dibuat (Enter atau baris 0)
-};
 
-typedef struct Buffer Buffer;
+/* -------------------------------------------------------
+   NODE BARIS  – satu baris teks dalam linked list
+   ------------------------------------------------------- */
+typedef struct NodeBaris {
+    char teks[MAX_KOLOM];       /* isi teks baris ini          */
+    int  barisAda;              /* 0=tidak ada, 1=wrap, 2=enter */
+    struct NodeBaris *berikut;  /* pointer ke baris berikutnya */
+} NodeBaris;
 
-// fungsi-fungsi buffer
-void initBuffer(Buffer *b);
-void insertChar(Buffer *b, char c);
-void deleteChar(Buffer *b);
-void newLine(Buffer *b);
-void displayBuffer(Buffer *b);
-void resetDisplayState(void);
+/* -------------------------------------------------------
+   BUFFER  – linked list semua baris + posisi kursor
+   ------------------------------------------------------- */
+typedef struct Buffer {
+    NodeBaris *kepala;   /* pointer ke baris pertama  */
+    int        jumlah;   /* total jumlah baris        */
+    Cursor     cur;      /* posisi kursor (brs, klm)  */
+} Buffer;
 
-#endif
+/* -------------------------------------------------------
+   FUNGSI BUFFER
+   ------------------------------------------------------- */
+void       initBuffer       (Buffer *b);
+void       insertChar       (Buffer *b, char c);
+void       deleteChar       (Buffer *b);
+void       newLine          (Buffer *b);
+void       resetDisplayState(void);
+
+/* Helper: ambil pointer ke NodeBaris ke-i (0-based) */
+NodeBaris *ambilBaris       (Buffer *b, int i);
+
+/* Helper: bebaskan semua memori linked list */
+void       bebaskanBuffer   (Buffer *b);
+
+#endif /* BUFFER_H */

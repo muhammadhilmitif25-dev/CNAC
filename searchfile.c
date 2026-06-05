@@ -1,52 +1,44 @@
 #include <stdio.h>
 #include <string.h>
-#include "searchfile.h"
+#include <conio.h>
 #include "buffer.h"
 
-/* === CARI KATA ===
-   Minta user input kata, lalu cari di semua baris buffer.
-   Kalau ketemu, tampilkan di baris keberapa. */
 void CariKata(Buffer *b)
 {
-    char kata[50];
-
-    // buang sisa newline dulu supaya fgets tidak langsung skip
-    int ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
-
+    char kata[100];
+    printf("\n============================================\n");
+    printf("              FITUR CARI KATA               \n");
+    printf("============================================\n");
     printf("Masukkan kata yang ingin dicari: ");
-    fgets(kata, sizeof(kata), stdin);
-    kata[strcspn(kata, "\n")] = '\0'; // hapus newline dari fgets
+    scanf("%99s", kata);
 
-    if (strlen(kata) == 0)
+    NodeBaris *node = b->kepala;
+    int indeksBaris = 0;
+    int ketemu = 0;
+
+    printf("\nHasil Pencarian:\n");
+    printf("--------------------------------------------\n");
+
+    while (node != NULL)
     {
-        printf(">> Kata tidak boleh kosong!\n");
-        return;
+        // Langsung cek panjang teks asli di dalam node
+        if (panjangNode(node) > 0)
+        {
+            char *posisi = strstr(node->teks, kata);
+            if (posisi != NULL)
+            {
+                int indeksKolom = posisi - node->teks;
+                printf("[Ketemu] Baris %d, Kolom %d: %s\n", indeksBaris + 1, indeksKolom + 1, node->teks);
+                ketemu = 1;
+            }
+        }
+        node = node->berikut;
+        indeksBaris++;
     }
 
-    int ditemukan = 0;
-    int i, k;
-
-    for (i = 0; i < MAX_BARIS; i++)
+    if (!ketemu)
     {
-        // salin isi baris ke string sementara supaya bisa pakai strstr
-        char barisBuf[MAX_KOLOM + 1];
-        k = 0;
-        while (k < MAX_KOLOM && b->text[i][k] != '\0')
-        {
-            barisBuf[k] = b->text[i][k];
-            k++;
-        }
-        barisBuf[k] = '\0';
-
-        // cari kata di baris ini
-        if (k > 0 && strstr(barisBuf, kata) != NULL)
-        {
-            ditemukan = 1;
-            printf(">> Kata '%s' DITEMUKAN di baris %d!\n", kata, i + 1);
-        }
+        printf("Kata '%s' tidak ditemukan dalam dokumen.\n", kata);
     }
-
-    if (!ditemukan)
-        printf(">> Kata '%s' tidak ditemukan di dokumen.\n", kata);
+    printf("============================================\n");
 }

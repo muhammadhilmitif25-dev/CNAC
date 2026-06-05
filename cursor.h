@@ -1,20 +1,22 @@
 #ifndef CURSOR_H
 #define CURSOR_H
 
-// forward declaration supaya bisa pakai struct Buffer di sini
-// (karena cursor.h di-include sebelum buffer.h)
+/* forward declaration */
 struct Buffer;
+struct NodeBaris;
 
-// struct kursor untuk nyimpen posisi baris dan kolom
 typedef struct {
-    int brs; // posisi baris (row)
-    int klm; // posisi kolom (column)
+    int brs; /* posisi baris  */
+    int klm; /* posisi kolom  */
 } Cursor;
 
-// deklarasi fungsi gerak kursor
-void movekiri(struct Buffer *b);
-void movekanan(struct Buffer *b);
-void moveatas(struct Buffer *b);
-void movebawah(struct Buffer *b);
+/* fungsi gerak kursor */
+void movekiri  (struct Buffer *b);
+void movekanan (struct Buffer *b);
+void moveatas  (struct Buffer *b);
+void movebawah (struct Buffer *b);
 
-#endif
+/* helper panjang node – dipakai di cursor.c dan buffer.c */
+int panjangNode(struct NodeBaris *node);
+
+#endif /* CURSOR_H */
